@@ -47,6 +47,7 @@
           - Insert into Terminal: Inserts the generated code into the terminal, useful for command-line operations.
           - Insert into File: Inserts the generated code into a specific file, allowing for better organization of code.
       - **@** also works in the chat window, allowing you to use more commands and add more specific context to your requests, such as `@vscode` or `@terminal` to get terminal commands.
+      - Useful tip is to scaffold a project with the `@workspace /new` command, which will create a new project with the necessary files and structure based on your instructions.
     - **Edit Mode:**
       - This mode allows you to add several files to the context, and it will generate code based on the context of those files, not only the current file but it'll also consider the creation of new files if necessary.
     - **Agent Mode:**
@@ -61,6 +62,8 @@
   - To use instruction files, create a file named `.github/copilot-instructions.md` in your project directory and add your instructions there.
   - Copilot will automatically read this file and apply the instructions when generating code.
 - Use **GitHub › Copilot › Chat › Editor › Temporal Context:** to control how much context Copilot uses when generating code. This can help improve the relevance of suggestions based on the current file or project.
+- There are several extensions available for GitHub Copilot that can enhance its functionality, such as:
+  - **Docker for GitHub Copilot:** This extension allows Copilot to understand Dockerfiles and provide suggestions for Docker-related tasks, it enables the `@docker` command in the chat interface, allowing you to generate Dockerfiles or run Docker commands.
 
 [1]: Poor instructions can lead to worse results, so it's important to provide clear and concise instructions in the instruction files.
 
