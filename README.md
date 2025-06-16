@@ -23,3 +23,4 @@ AI Tools Overview
 
 1. [GitHub Copilot](./_notes/github-copilot.md)
 2. [Cursor AI](./_notes/cursor-ai.md)
+3. [General Purpose AI Tools](./_notes/general-purpose-ai-tools.md)

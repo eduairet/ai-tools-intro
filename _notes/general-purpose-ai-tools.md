@@ -1,0 +1,7 @@
+# General Purpose AI Tools
+
+- Even though GitHub Copilot and Cursor AI integrate the AI to the text editor, there will be cases when we're going to need to use a general purpose AI tool to help us with our tasks, like generating images or videos, plan a presentation for our MVP, etc.
+- Some of the tasks we can do with general purpose AI tools are:
+  - **Plan an Application:** We can use AI to plan an application, like a MVP, or a full-stack application, we can use AI to generate the requirements, the architecture, the database schema, the API endpoints, the UI/UX design, the deployment plan, etc, since GitHub Copilot or Cursor AI are code focused, they might not consider a lot of external factors, like the cost of the application, business context, etc.
+  - **Research Tasks:** When we have doubts about a specific topic, like payroll services, or authentication providers, we can use AI to research the best options, and then we can use the information to make a decision.
+  - **Asset Generation:** We can use AI to generate images, videos, music, etc, this is useful when we need to create a lot of assets for our application, or when we need to create a lot of content for our application, like blog posts, social media posts, etc.
