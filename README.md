@@ -22,3 +22,4 @@ AI Tools Overview
 ## Notes
 
 1. [GitHub Copilot](./_notes/github-copilot.md)
+2. [Cursor AI](./_notes/cursor-ai.md)
