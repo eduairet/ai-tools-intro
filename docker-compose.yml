@@ -1,8 +1,8 @@
 services:
-  test:
+  python-test:
     image: python:3.11.13
-    working_dir: /app
+    working_dir: /python
     volumes:
-      - .:/app
+      - ./python:/python
     command: >
       sh -c "pip install -r requirements.txt && pytest tests/ -s -v"
