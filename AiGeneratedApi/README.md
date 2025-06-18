@@ -14,7 +14,7 @@
   > - Events have title, description, date, location and image. 
   > - Authenticated user can register and unregister for events
 
-### Output:
+### Output (slightly modified by hand):
 
 - Platform: .NET 8 (ASP.NET Core Web API)
 - Authentication: JWT Bearer Tokens
