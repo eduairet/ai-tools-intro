@@ -1,6 +1,106 @@
-@EventManagementApi_HostAddress = http://localhost:5045
+@EventManagementApi_HostAddress = http://localhost:8080
 
 GET {{EventManagementApi_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+### Register a new user
+POST {{EventManagementApi_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+  "userName": "testuser",
+  "email": "testuser@example.com",
+  "passwordHash": "testpassword"
+}
+
+###
+
+### Login and get JWT token
+POST {{EventManagementApi_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "userName": "testuser",
+  "passwordHash": "testpassword"
+}
+
+###
+
+### Get all events (public)
+GET {{EventManagementApi_HostAddress}}/api/events
+Accept: application/json
+
+###
+
+### Create a new event (requires Bearer token)
+POST {{EventManagementApi_HostAddress}}/api/events
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "title": "Sample Event",
+  "description": "This is a test event.",
+  "date": "2024-07-01T18:00:00Z",
+  "location": "Online"
+}
+
+###
+
+### Update an event (requires Bearer token)
+PUT {{EventManagementApi_HostAddress}}/api/events/{eventId}
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Event Title",
+  "description": "Updated description.",
+  "date": "2024-07-02T18:00:00Z",
+  "location": "Updated Location",
+  "imageUrl": "/temp/sample.jpg"
+}
+
+###
+
+### Delete an event (requires Bearer token)
+DELETE {{EventManagementApi_HostAddress}}/api/events/{eventId}
+Authorization: Bearer {{jwt_token}}
+
+###
+
+### Register for an event (requires Bearer token)
+POST {{EventManagementApi_HostAddress}}/api/events/{eventId}/eventsregistration/register
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "userId": "{userId}"
+}
+
+###
+
+### Unregister from an event (requires Bearer token)
+DELETE {{EventManagementApi_HostAddress}}/api/events/{eventId}/eventsregistration/register
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "userId": "{userId}"
+}
+
+###
+
+### Upload an image for an event (requires Bearer token)
+POST {{EventManagementApi_HostAddress}}/api/events/{eventId}/image
+Authorization: Bearer {{jwt_token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./sample.jpg
+--WebAppBoundary--
 
 ###
