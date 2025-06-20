@@ -67,7 +67,7 @@ builder.Services.AddScoped<IRepositoryEvents, RepositoryEvents>();
 builder.Services.AddScoped<IRepositoryEventsRegistrations, RepositoryEventsRegistrations>();
 
 // Configure JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"] ?? EventManagementApi.Shared.Constants.Jwt.DefaultSecretKey;
+var jwtKey = builder.Configuration["Jwt:Key"] ?? EventManagementApi.Shared.Constants.Jwt.DefaultKey;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? EventManagementApi.Shared.Constants.Jwt.DefaultIssuer;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

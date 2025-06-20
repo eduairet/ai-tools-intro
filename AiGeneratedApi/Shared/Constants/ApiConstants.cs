@@ -9,7 +9,7 @@ namespace EventManagementApi.Shared.Constants
                 public const string ApiBase = "api";
                 public const string Users = "users";
                 public const string Events = "events";
-                public const string EventsRegistration = "eventsregistration";
+                public const string EventsRegistration = "events-registration";
             }
             public static class ErrorMessages
             {

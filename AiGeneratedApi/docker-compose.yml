@@ -7,8 +7,8 @@ services:
       - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - Jwt__Key=2b7e1c8e-4f3a-4c2e-9e2a-7d8b6f5c1a9e
-      - ConnectionStrings__DefaultConnection=Data Source=/app/Data/EventManagement.db
+      - Jwt__Key=this-is-a-fallback-and-it-does-not-matter
+      - ConnectionStrings__DefaultConnection=Data Source=/app/Data/event_management.db
     volumes:
       - ./wwwroot:/app/wwwroot
       - sqlite_data:/app/Data

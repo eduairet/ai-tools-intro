@@ -11,11 +11,12 @@ using System.Linq;
 using AutoMapper;
 using EventManagementApi.Shared.Constants;
 using EventManagementApi.Shared.Helpers;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace EventManagementApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/events")]
     [Authorize]
     public class EventsController : ControllerBase
     {
@@ -53,7 +54,7 @@ namespace EventManagementApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateEvent([FromBody] CreateEventDto createEventDto)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
@@ -76,7 +77,7 @@ namespace EventManagementApi.Controllers
             if (eventItem == null)
                 return NotFound();
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (eventItem.OwnerId != userId)
                 return Forbid(Constants.ApiConstants.ErrorMessages.UnauthorizedAccess);
 
@@ -95,7 +96,7 @@ namespace EventManagementApi.Controllers
             if (eventItem == null)
                 return NotFound();
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (eventItem.OwnerId != userId)
                 return Forbid(Constants.ApiConstants.ErrorMessages.UnauthorizedAccess);
 
@@ -113,7 +114,7 @@ namespace EventManagementApi.Controllers
             if (eventItem == null)
                 return NotFound();
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (eventItem.OwnerId != userId)
                 return Forbid(Constants.ApiConstants.ErrorMessages.UnauthorizedAccess);
 

@@ -12,11 +12,12 @@ using System;
 using AutoMapper;
 using EventManagementApi.Shared.Constants;
 using EventManagementApi.Shared.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EventManagementApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/users")]
     public class UsersController : ControllerBase
     {
         private readonly IRepositoryUsers _userRepository;
@@ -43,7 +44,6 @@ namespace EventManagementApi.Controllers
 
             // Map DTO to User entity using AutoMapper
             var user = _mapper.Map<User>(registerDto);
-            user.Id = Guid.NewGuid().ToString();
             user.PasswordHash = Helpers.Password.Hash(registerDto.Password);
 
             await _userRepository.AddAsync(user);
@@ -67,51 +67,63 @@ namespace EventManagementApi.Controllers
             if (!Helpers.Password.Verify(loginDto.Password, user.PasswordHash ?? string.Empty))
                 return Unauthorized(Constants.ApiConstants.ErrorMessages.InvalidCredentials);
 
-            // Generate JWT using helper method
+            // Generate JWT and refresh token
             var tokenString = Helpers.Jwt.GenerateToken(user, _configuration);
-            return Ok(new { token = tokenString });
+            var refreshToken = Helpers.Jwt.GenerateRefreshToken();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userRepository.SaveChangesAsync();
+
+            return Ok(new { token = tokenString, refreshToken });
         }
 
         // POST: api/users/refresh
         [HttpPost("refresh")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto refreshDto)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto)
         {
+            Console.WriteLine($"[RefreshToken] Called with accessToken: {dto.AccessToken.Substring(0, 20)}..., refreshToken: {dto.RefreshToken.Substring(0, 8)}...");
+            ClaimsPrincipal principal = null;
             try
             {
-                // Validate the current token
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var validationParameters = Helpers.Jwt.GetTokenValidationParameters(_configuration);
-
-                // Validate and read the token
-                var principal = tokenHandler.ValidateToken(refreshDto.Token, validationParameters, out var validatedToken);
-                
-                // Extract user ID from the token
-                var userId = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-                if (string.IsNullOrEmpty(userId))
+                try
                 {
-                    return Unauthorized(Constants.ApiConstants.ErrorMessages.InvalidToken);
+                    principal = GetPrincipalFromExpiredToken(dto.AccessToken);
                 }
-
-                // Verify user still exists
+                catch (Exception tokenEx)
+                {
+                    Console.WriteLine($"[RefreshToken TokenException] {tokenEx}");
+                    return StatusCode(401, new { error = Constants.ApiConstants.ErrorMessages.InvalidToken, details = "Token validation failed: " + tokenEx.ToString() });
+                }
+                var userId = principal.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value;
                 var user = await _userRepository.GetByIdAsync(userId);
-                if (user == null)
-                {
-                    return Unauthorized(Constants.ApiConstants.ErrorMessages.UserNotFound);
-                }
+                if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                    return StatusCode(401, new { error = Constants.ApiConstants.ErrorMessages.InvalidToken, details = "User not found, refresh token mismatch, or refresh token expired." });
 
-                // Generate new token
-                var newToken = Helpers.Jwt.GenerateToken(user, _configuration);
-                
-                return Ok(new { token = newToken });
+                var newAccessToken = Helpers.Jwt.GenerateToken(user, _configuration);
+                var newRefreshToken = Helpers.Jwt.GenerateRefreshToken();
+                user.RefreshToken = newRefreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+                await _userRepository.SaveChangesAsync();
+
+                return Ok(new { token = newAccessToken, refreshToken = newRefreshToken });
             }
-            catch (SecurityTokenExpiredException)
+            catch (Exception ex)
             {
-                return Unauthorized(Constants.ApiConstants.ErrorMessages.TokenExpired);
+                Console.WriteLine($"[RefreshToken Exception] {ex}");
+                return StatusCode(401, new { error = Constants.ApiConstants.ErrorMessages.InvalidToken, details = ex.ToString() });
             }
-            catch (Exception)
-            {
-                return Unauthorized(Constants.ApiConstants.ErrorMessages.InvalidToken);
-            }
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenValidationParameters = Helpers.Jwt.GetTokenValidationParameters(_configuration);
+            tokenValidationParameters.ValidateLifetime = false; // Ignore expiration
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                throw new SecurityTokenException("Invalid token");
+            return principal;
         }
     }
 }

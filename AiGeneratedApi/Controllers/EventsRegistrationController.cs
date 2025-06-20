@@ -5,11 +5,12 @@ using EventManagementApi.Models.EventRegistration;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
 using AutoMapper;
 using EventManagementApi.Shared.Constants;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace EventManagementApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/events-registration")]
     [Authorize]
     public class EventsRegistrationController : ControllerBase
     {
@@ -47,7 +48,7 @@ namespace EventManagementApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateRegistration([FromBody] CreateEventRegistrationDto createRegistrationDto)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
@@ -70,7 +71,7 @@ namespace EventManagementApi.Controllers
             if (registration == null)
                 return NotFound();
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (registration.UserId != userId)
                 return Forbid(Constants.ApiConstants.ErrorMessages.UnauthorizedAccess);
 

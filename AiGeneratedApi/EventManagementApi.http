@@ -12,7 +12,7 @@ Content-Type: application/json
 {
   "userName": "testuser",
   "email": "testuser@example.com",
-  "passwordHash": "testpassword"
+  "password": "testpassword"
 }
 
 ###
@@ -23,13 +23,19 @@ Content-Type: application/json
 
 {
   "userName": "testuser",
-  "passwordHash": "testpassword"
+  "password": "testpassword"
 }
 
 ###
 
 ### Get all events (public)
 GET {{EventManagementApi_HostAddress}}/api/events
+Accept: application/json
+
+###
+
+### Get a single event by ID (public)
+GET {{EventManagementApi_HostAddress}}/api/events/{eventId}
 Accept: application/json
 
 ###
@@ -43,7 +49,8 @@ Content-Type: application/json
   "title": "Sample Event",
   "description": "This is a test event.",
   "date": "2024-07-01T18:00:00Z",
-  "location": "Online"
+  "location": "Online",
+  "imageUrl": "/temp/sample.jpg"
 }
 
 ###
@@ -58,7 +65,7 @@ Content-Type: application/json
   "description": "Updated description.",
   "date": "2024-07-02T18:00:00Z",
   "location": "Updated Location",
-  "imageUrl": "/temp/sample.jpg"
+  "imageUrl": "/temp/updated.jpg"
 }
 
 ###
@@ -88,6 +95,13 @@ Content-Type: application/json
 {
   "userId": "{userId}"
 }
+
+###
+
+### Get all registrations for an event (requires Bearer token)
+GET {{EventManagementApi_HostAddress}}/api/events/{eventId}/eventsregistration
+Authorization: Bearer {{jwt_token}}
+Accept: application/json
 
 ###
 

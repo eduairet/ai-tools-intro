@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS Users (
     Id TEXT PRIMARY KEY,
     UserName TEXT NOT NULL UNIQUE,
     Email TEXT NOT NULL UNIQUE,
-    PasswordHash TEXT NOT NULL
+    PasswordHash TEXT NOT NULL,
+    RefreshToken TEXT,
+    RefreshTokenExpiryTime TEXT
     -- Add other ASP.NET Identity fields as needed
 );
 

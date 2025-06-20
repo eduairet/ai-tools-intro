@@ -1,4 +1,5 @@
 using System.Text;
+using BCrypt.Net;
 
 namespace EventManagementApi.Shared.Helpers
 {
@@ -10,14 +11,21 @@ namespace EventManagementApi.Shared.Helpers
             {
                 if (string.IsNullOrEmpty(password))
                     return string.Empty;
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes(password));
+                return BCrypt.Net.BCrypt.HashPassword(password);
             }
             public static bool Verify(string password, string hash)
             {
                 if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
                     return false;
-                var hashedPassword = Hash(password);
-                return hash == hashedPassword;
+
+                try
+                {
+                    return BCrypt.Net.BCrypt.Verify(password, hash);
+                }
+                catch (BCrypt.Net.SaltParseException)
+                {
+                    return false;
+                }
             }
         }
     }
