@@ -253,5 +253,6 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 
-# JetBrains Rider
+# JetBrains
 .idea/
+Folder.DotSettings.user
