@@ -1,12 +1,12 @@
 using EventManagementApi.Data;
-using EventManagementApi.Models.Event;
+using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryBase;
 
 namespace EventManagementApi.Repositories.RepositoryEvents
 {
     public class RepositoryEvents : RepositoryBase<Event>, IRepositoryEvents
     {
-        public RepositoryEvents(ApplicationDbContext context) : base(context)
+        public RepositoryEvents(AppDbContext context) : base(context)
         {
         }
         // Add event-specific methods here if needed

@@ -1,4 +1,4 @@
-using EventManagementApi.Models.User;
+using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryBase;
 
 namespace EventManagementApi.Repositories.RepositoryUsers

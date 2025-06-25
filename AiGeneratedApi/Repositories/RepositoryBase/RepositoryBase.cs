@@ -1,19 +1,15 @@
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using EventManagementApi.Data;
 
 namespace EventManagementApi.Repositories.RepositoryBase
 {
     public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     {
-        protected readonly ApplicationDbContext _context;
-        protected readonly DbSet<T> _dbSet;
+        private readonly AppDbContext _context;
+        private readonly DbSet<T> _dbSet;
 
-        public RepositoryBase(ApplicationDbContext context)
+        protected RepositoryBase(AppDbContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();

@@ -1,7 +1,8 @@
 using AutoMapper;
-using EventManagementApi.Models.User;
-using EventManagementApi.Models.Event;
-using EventManagementApi.Models.EventRegistration;
+using EventManagementApi.Models;
+using EventManagementApi.Models.Dto.User;
+using EventManagementApi.Models.Dto.Event;
+using EventManagementApi.Models.Dto.EventRegistration;
 
 namespace EventManagementApi.Config
 {

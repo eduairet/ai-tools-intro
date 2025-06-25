@@ -1,5 +1,5 @@
 services:
-  eventmanagementapi:
+  event-management-api:
     build:
       context: .
       dockerfile: Dockerfile

@@ -5,8 +5,18 @@ CREATE TABLE IF NOT EXISTS Users (
     Email TEXT NOT NULL UNIQUE,
     PasswordHash TEXT NOT NULL,
     RefreshToken TEXT,
-    RefreshTokenExpiryTime TEXT
-    -- Add other ASP.NET Identity fields as needed
+    RefreshTokenExpiryTime TEXT,
+    -- ASP.NET Identity fields
+    SecurityStamp TEXT NOT NULL,
+    ConcurrencyStamp TEXT NOT NULL,
+    LockoutEnabled BOOLEAN NOT NULL DEFAULT 0,
+    LockoutEnd TEXT,
+    AccessFailedCount INTEGER NOT NULL DEFAULT 0,
+    PhoneNumber TEXT,
+    PhoneNumberConfirmed BOOLEAN NOT NULL DEFAULT 0,
+    TwoFactorEnabled BOOLEAN NOT NULL DEFAULT 0,
+    NormalizedUserName TEXT NOT NULL,
+    NormalizedEmail TEXT NOT NULL
 );
 
 -- Create Events table

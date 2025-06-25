@@ -1,4 +1,4 @@
-using EventManagementApi.Models.EventRegistration;
+using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryBase;
 
 namespace EventManagementApi.Repositories.RepositoryEventsRegistrations

@@ -1,84 +1,63 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using EventManagementApi.Models.EventRegistration;
+using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
 using AutoMapper;
-using EventManagementApi.Shared.Constants;
-using System.IdentityModel.Tokens.Jwt;
+using EventManagementApi.Models.Dto.EventRegistration;
 
-namespace EventManagementApi.Controllers
+namespace EventManagementApi.Controllers;
+
+[ApiController]
+[Route("api/events")]
+[Authorize]
+public class EventsRegistrationController : ControllerBase
 {
-    [ApiController]
-    [Route("api/events-registration")]
-    [Authorize]
-    public class EventsRegistrationController : ControllerBase
+    private readonly IRepositoryEventsRegistrations _registrationRepository;
+    private readonly IMapper _mapper;
+
+    public EventsRegistrationController(IRepositoryEventsRegistrations registrationRepository, IMapper mapper)
     {
-        private readonly IRepositoryEventsRegistrations _registrationRepository;
-        private readonly IMapper _mapper;
+        _registrationRepository = registrationRepository;
+        _mapper = mapper;
+    }
 
-        public EventsRegistrationController(IRepositoryEventsRegistrations registrationRepository, IMapper mapper)
+    // POST: api/events/{eventId}/register
+    [HttpPost("{eventId}/register")]
+    public async Task<IActionResult> Register(string eventId)
+    {
+        var userId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var registration = new EventRegistration
         {
-            _registrationRepository = registrationRepository;
-            _mapper = mapper;
-        }
+            Id = Guid.NewGuid().ToString(),
+            EventId = Guid.Parse(eventId).ToString(),
+            UserId = userId
+        };
 
-        // GET: api/eventsregistration
-        [HttpGet]
-        public async Task<IActionResult> GetAllRegistrations()
-        {
-            var registrations = await _registrationRepository.GetAllAsync();
-            var response = _mapper.Map<IEnumerable<EventRegistrationResponseDto>>(registrations);
-            return Ok(response);
-        }
+        await _registrationRepository.AddAsync(registration);
+        await _registrationRepository.SaveChangesAsync();
 
-        // GET: api/eventsregistration/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetRegistration(string id)
-        {
-            var registration = await _registrationRepository.GetByIdAsync(id);
-            if (registration == null)
-                return NotFound();
+        var response = _mapper.Map<EventRegistrationResponseDto>(registration);
+        return CreatedAtAction(null, new { id = registration.Id }, response);
+    }
 
-            var response = _mapper.Map<EventRegistrationResponseDto>(registration);
-            return Ok(response);
-        }
+    // DELETE: api/events/{eventId}/register
+    [HttpDelete("{eventId}/register")]
+    public async Task<IActionResult> Unregister(string eventId)
+    {
+        var userId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        var eventGuid = Guid.Parse(eventId);
+        var registrations =
+            await _registrationRepository.FindAsync(r => r.EventId == eventGuid.ToString() && r.UserId == userId);
+        var registration = registrations.FirstOrDefault();
+        if (registration is null)
+            return NotFound();
 
-        // POST: api/eventsregistration
-        [HttpPost]
-        public async Task<IActionResult> CreateRegistration([FromBody] CreateEventRegistrationDto createRegistrationDto)
-        {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+        _registrationRepository.Remove(registration);
+        await _registrationRepository.SaveChangesAsync();
 
-            var registration = _mapper.Map<EventRegistration>(createRegistrationDto);
-            registration.Id = Guid.NewGuid();
-            registration.UserId = userId;
-
-            await _registrationRepository.AddAsync(registration);
-            await _registrationRepository.SaveChangesAsync();
-
-            var response = _mapper.Map<EventRegistrationResponseDto>(registration);
-            return CreatedAtAction(nameof(GetRegistration), new { id = registration.Id }, response);
-        }
-
-        // DELETE: api/eventsregistration/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRegistration(string id)
-        {
-            var registration = await _registrationRepository.GetByIdAsync(id);
-            if (registration == null)
-                return NotFound();
-
-            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            if (registration.UserId != userId)
-                return Forbid(Constants.ApiConstants.ErrorMessages.UnauthorizedAccess);
-
-            _registrationRepository.Remove(registration);
-            await _registrationRepository.SaveChangesAsync();
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }

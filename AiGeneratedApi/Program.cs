@@ -1,16 +1,14 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 using EventManagementApi.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
 using EventManagementApi.Repositories.RepositoryUsers;
 using EventManagementApi.Repositories.RepositoryEvents;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
 using EventManagementApi.Config;
-using EventManagementApi.Shared.Constants;
+using EventManagementApi.Models;
 using EventManagementApi.Shared.Helpers;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,13 +22,13 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo 
-    { 
-        Title = "Event Management API", 
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Event Management API",
         Version = "v1",
         Description = "A REST API for managing events, users, and event registrations with JWT authentication."
     });
-    
+
     // Add JWT authentication to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -40,7 +38,7 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-    
+
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -52,23 +50,27 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            []
         }
     });
 });
 
-// Add Entity Framework with SQLite
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add Entity Framework with SQLite, but skip in Test environment
+if (!builder.Environment.IsEnvironment("Test"))
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
+else
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseInMemoryDatabase("TestDb"));
+}
 
 // Register Repositories
 builder.Services.AddScoped<IRepositoryUsers, RepositoryUsers>();
 builder.Services.AddScoped<IRepositoryEvents, RepositoryEvents>();
 builder.Services.AddScoped<IRepositoryEventsRegistrations, RepositoryEventsRegistrations>();
-
-// Configure JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"] ?? EventManagementApi.Shared.Constants.Jwt.DefaultKey;
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? EventManagementApi.Shared.Constants.Jwt.DefaultIssuer;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -85,17 +87,31 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
+
+// Add ASP.NET Core Identity
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+    {
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequiredLength = 6;
+        options.Password.RequiredUniqueChars = 1;
+    })
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 var app = builder.Build();
 
 // Ensure database is created and migrated
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Test"))
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     context.Database.EnsureCreated();
 }
 
@@ -121,3 +137,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public abstract partial class Program
+{
+}
