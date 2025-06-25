@@ -82,7 +82,7 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
                     new
                     {
                         error = Constants.ApiConstants.ErrorMessages.InvalidToken,
-                        details = "Token validation failed: " + tokenEx.ToString()
+                        details = "Token validation failed: " + tokenEx
                     });
             }
 

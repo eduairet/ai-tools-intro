@@ -256,3 +256,6 @@ nunit-*.xml
 # JetBrains
 .idea/
 Folder.DotSettings.user
+
+# Databases
+*.db
