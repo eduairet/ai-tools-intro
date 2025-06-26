@@ -1,4 +1,6 @@
-namespace EventManagementApi.Shared.Constants
+namespace EventManagementApi.Shared.Constants;
+
+public partial class Constants
 {
     public static class Jwt
     {
@@ -7,4 +9,4 @@ namespace EventManagementApi.Shared.Constants
         public const string BearerScheme = "Bearer";
         public const int TokenExpirationHours = 1;
     }
-} 
+}

@@ -7,6 +7,7 @@ using EventManagementApi.Repositories.RepositoryEvents;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
 using EventManagementApi.Config;
 using EventManagementApi.Models;
+using EventManagementApi.Shared.Constants;
 using EventManagementApi.Shared.Helpers;
 using Microsoft.AspNetCore.Identity;
 
@@ -22,21 +23,21 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
+    c.SwaggerDoc(Constants.Api.ApiVersion, new OpenApiInfo
     {
         Title = "Event Management API",
-        Version = "v1",
+        Version = Constants.Api.ApiVersion,
         Description = "A REST API for managing events, users, and event registrations with JWT authentication."
     });
 
     // Add JWT authentication to Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    c.AddSecurityDefinition(Constants.Jwt.BearerScheme, new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Scheme = Constants.Jwt.BearerScheme
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -47,7 +48,7 @@ builder.Services.AddSwaggerGen(c =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Id = Constants.Jwt.BearerScheme
                 }
             },
             []
@@ -122,7 +123,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Event Management API V1");
+        c.SwaggerEndpoint($"/swagger/{Constants.Api.ApiVersion}/swagger.json", $"Event Management API {Constants.Api.ApiVersion.ToUpper()}");
         c.RoutePrefix = string.Empty; // Serve Swagger UI at the app's root
     });
 }
@@ -137,7 +138,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-public abstract partial class Program
-{
-}

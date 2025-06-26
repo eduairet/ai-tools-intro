@@ -13,18 +13,18 @@ using EventManagementApi.Shared.Helpers;
 namespace EventManagementApi.Controllers;
 
 [ApiController]
-[Route("api/users")]
+[Route(Constants.Api.Routes.Users)]
 public class UsersController(IRepositoryUsers userRepository, IConfiguration configuration, IMapper mapper)
     : ControllerBase
 {
-    // POST: api/users/register
+    // POST: api/v1/users/register
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         // Check if user with this email already exists
         var existingUsers = await userRepository.FindAsync(u => u.Email == registerDto.Email);
 
-        if (existingUsers.Any()) return BadRequest(Constants.ApiConstants.ErrorMessages.UserAlreadyExists);
+        if (existingUsers.Any()) return BadRequest(Constants.Api.ErrorMessages.UserAlreadyExists);
 
         // Map DTO to User entity using AutoMapper
         var user = mapper.Map<User>(registerDto);
@@ -38,7 +38,7 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
         return Ok(response);
     }
 
-    // POST: api/users/login
+    // POST: api/v1/users/login
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
@@ -46,11 +46,11 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
         var user = users.FirstOrDefault();
 
         if (user is null)
-            return Unauthorized(Constants.ApiConstants.ErrorMessages.InvalidCredentials);
+            return Unauthorized(Constants.Api.ErrorMessages.InvalidCredentials);
 
         // Verify password
         if (user.PasswordHash is not null && !Helpers.Password.Verify(loginDto.Password, user.PasswordHash))
-            return Unauthorized(Constants.ApiConstants.ErrorMessages.InvalidCredentials);
+            return Unauthorized(Constants.Api.ErrorMessages.InvalidCredentials);
 
         // Generate JWT and refresh token
         var tokenString = Helpers.Jwt.GenerateToken(user, configuration);
@@ -62,12 +62,10 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
         return Ok(new { token = tokenString, refreshToken });
     }
 
-    // POST: api/users/refresh
+    // POST: api/v1/users/refresh
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto)
     {
-        Console.WriteLine(
-            $"[RefreshToken] Called with accessToken: {dto.AccessToken.Substring(0, 20)}..., refreshToken: {dto.RefreshToken.Substring(0, 8)}...");
         try
         {
             ClaimsPrincipal principal;
@@ -77,24 +75,23 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
             }
             catch (Exception tokenEx)
             {
-                Console.WriteLine($"[RefreshToken TokenException] {tokenEx}");
                 return StatusCode(401,
                     new
                     {
-                        error = Constants.ApiConstants.ErrorMessages.InvalidToken,
-                        details = "Token validation failed: " + tokenEx
+                        error = Constants.Api.ErrorMessages.InvalidToken,
+                        details = Constants.Api.ErrorMessages.TokenValidationFailed(tokenEx.Message)
                     });
             }
 
-            var userId = principal.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value;
+            var userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
             var user = await userRepository.GetByIdAsync(userId);
             if (user is null || user.RefreshToken != dto.RefreshToken ||
                 DateTime.TryParse(user.RefreshTokenExpiryTime, out var expiryTime) && expiryTime <= DateTime.UtcNow)
                 return StatusCode(401,
                     new
                     {
-                        error = Constants.ApiConstants.ErrorMessages.InvalidToken,
-                        details = "User not found, refresh token mismatch, or refresh token expired."
+                        error = Constants.Api.ErrorMessages.InvalidToken,
+                        details = Constants.Api.ErrorMessages.AuthenticationFailure
                     });
 
             var newAccessToken = Helpers.Jwt.GenerateToken(user, configuration);
@@ -107,9 +104,8 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[RefreshToken Exception] {ex}");
             return StatusCode(401,
-                new { error = Constants.ApiConstants.ErrorMessages.InvalidToken, details = ex.ToString() });
+                new { error = Constants.Api.ErrorMessages.InvalidToken, details = ex.ToString() });
         }
     }
 
@@ -119,11 +115,13 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
         tokenValidationParameters.ValidateLifetime = false; // Ignore expiration
         var tokenHandler = new JwtSecurityTokenHandler();
         var principal =
-            tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
-        var jwtSecurityToken = securityToken as JwtSecurityToken;
-        if (jwtSecurityToken is null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+            tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+
+        if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(
+                SecurityAlgorithms.HmacSha256,
                 StringComparison.InvariantCultureIgnoreCase))
-            throw new SecurityTokenException("Invalid token");
+            throw new SecurityTokenException(Constants.Api.ErrorMessages.InvalidToken);
+
         return principal;
     }
 }

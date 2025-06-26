@@ -61,11 +61,11 @@
   - ImageUrl
   - OwnerId (Foreign Key to User)
 - Endpoints:
-  - `POST /api/events - Create Event (Authenticated)`
-  - `GET /api/events - List All Events (Public)`
-  - `GET /api/events/{id} - Get Event Details (Public)`
-  - `PUT /api/events/{id} - Update Event (Owner only)`
-  - `DELETE /api/events/{id} - Delete Event (Owner only)`
+  - `POST /api/v1/events - Create Event (Authenticated)`
+  - `GET /api/v1/events - List All Events (Public)`
+  - `GET /api/v1/events/{id} - Get Event Details (Public)`
+  - `PUT /api/v1/events/{id} - Update Event (Owner only)`
+  - `DELETE /api/v1/events/{id} - Delete Event (Owner only)`
 
 ##### 3.3 Event Registration
 
@@ -74,21 +74,21 @@
   - EventId (Foreign Key)
   - UserId (Foreign Key)
 - Endpoints:
-  - `POST /api/events/{id}/register - Register for Event (Authenticated)`
-  - `DELETE /api/events/{id}/register - Unregister from Event (Authenticated)`
+  - `POST /api/v1/events/{id}/register - Register for Event (Authenticated)`
+  - `DELETE /api/v1/events/{id}/register - Unregister from Event (Authenticated)`
 
 ##### 3.4 User Management
 
 - User Entity:
   - Extend ASP.NET Core Identity User (includes Id, Email, PasswordHash, etc.)
 - Endpoints:
-  - `POST /api/auth/register - Register New User`
-  - `POST /api/auth/login - Authenticate User & Return JWT`
+  - `POST /api/v1/auth/register - Register New User`
+  - `POST /api/v1/auth/login - Authenticate User & Return JWT`
 
 ##### 3.5 Image Uploading
 
 - Endpoints:
-  - `POST /api/events/{id}/image - Upload or update image for event (Owner only)`
+  - `POST /api/v1/events/{id}/image - Upload or update image for event (Owner only)`
 - Storage Options:
   - Store image locally on server with a URL reference in the Event entity.
   - (Optional) Integrate cloud storage (Azure, AWS, etc.) for scalability.

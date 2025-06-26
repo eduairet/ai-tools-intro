@@ -4,30 +4,23 @@ using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
 using AutoMapper;
 using EventManagementApi.Models.Dto.EventRegistration;
+using EventManagementApi.Shared.Constants;
 
 namespace EventManagementApi.Controllers;
 
 [ApiController]
-[Route("api/events")]
+[Route(Constants.Api.Routes.EventsRegistration)]
 [Authorize]
-public class EventsRegistrationController : ControllerBase
+public class EventsRegistrationController(IRepositoryEventsRegistrations registrationRepository, IMapper mapper)
+    : ControllerBase
 {
-    private readonly IRepositoryEventsRegistrations _registrationRepository;
-    private readonly IMapper _mapper;
-
-    public EventsRegistrationController(IRepositoryEventsRegistrations registrationRepository, IMapper mapper)
-    {
-        _registrationRepository = registrationRepository;
-        _mapper = mapper;
-    }
-
-    // POST: api/events/{eventId}/register
-    [HttpPost("{eventId}/register")]
+    // POST: api/v1/events/{eventId}/register
+    [HttpPost]
     public async Task<IActionResult> Register(string eventId)
     {
         var userId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
+
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
         var registration = new EventRegistration
         {
@@ -36,27 +29,27 @@ public class EventsRegistrationController : ControllerBase
             UserId = userId
         };
 
-        await _registrationRepository.AddAsync(registration);
-        await _registrationRepository.SaveChangesAsync();
+        await registrationRepository.AddAsync(registration);
+        await registrationRepository.SaveChangesAsync();
 
-        var response = _mapper.Map<EventRegistrationResponseDto>(registration);
+        var response = mapper.Map<EventRegistrationResponseDto>(registration);
         return CreatedAtAction(null, new { id = registration.Id }, response);
     }
 
-    // DELETE: api/events/{eventId}/register
-    [HttpDelete("{eventId}/register")]
+    // DELETE: api/v1/events/{eventId}/register
+    [HttpDelete]
     public async Task<IActionResult> Unregister(string eventId)
     {
         var userId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
         var eventGuid = Guid.Parse(eventId);
         var registrations =
-            await _registrationRepository.FindAsync(r => r.EventId == eventGuid.ToString() && r.UserId == userId);
+            await registrationRepository.FindAsync(r => r.EventId == eventGuid.ToString() && r.UserId == userId);
         var registration = registrations.FirstOrDefault();
-        if (registration is null)
-            return NotFound();
 
-        _registrationRepository.Remove(registration);
-        await _registrationRepository.SaveChangesAsync();
+        if (registration is null) return NotFound();
+
+        registrationRepository.Remove(registration);
+        await registrationRepository.SaveChangesAsync();
 
         return NoContent();
     }

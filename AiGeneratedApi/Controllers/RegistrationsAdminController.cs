@@ -3,16 +3,17 @@ using Microsoft.AspNetCore.Authorization;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
 using AutoMapper;
 using EventManagementApi.Models.Dto.EventRegistration;
+using EventManagementApi.Shared.Constants;
 
 namespace EventManagementApi.Controllers;
 
 [ApiController]
-[Route("api/events-registration")]
+[Route(Constants.Api.Routes.RegistrationsAdmin)]
 [Authorize]
 public class RegistrationsAdminController(IRepositoryEventsRegistrations registrationRepository, IMapper mapper)
     : ControllerBase
 {
-    // GET: api/events-registration
+    // GET: api/v1/events-registrations
     [HttpGet]
     public async Task<IActionResult> GetAllRegistrations()
     {
@@ -21,7 +22,7 @@ public class RegistrationsAdminController(IRepositoryEventsRegistrations registr
         return Ok(response);
     }
 
-    // GET: api/events-registration/{id}
+    // GET: api/v1/events-registrations/{id}
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRegistration(string id)
     {

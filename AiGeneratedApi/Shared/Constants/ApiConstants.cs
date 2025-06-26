@@ -1,31 +1,39 @@
-namespace EventManagementApi.Shared.Constants
+namespace EventManagementApi.Shared.Constants;
+
+public partial class Constants
 {
-    public static class Constants
+    public static class Api
     {
-        public static class ApiConstants
+        public const string ApiVersion = "v1";
+
+        public static class Routes
         {
-            public static class Routes
-            {
-                public const string ApiBase = "api";
-                public const string Users = "users";
-                public const string Events = "events";
-                public const string EventsRegistration = "events-registration";
-            }
-            public static class ErrorMessages
-            {
-                public const string UserNotFound = "User not found.";
-                public const string InvalidCredentials = "Invalid email or password.";
-                public const string UserAlreadyExists = "User with this email already exists.";
-                public const string InvalidToken = "Invalid token.";
-                public const string TokenExpired = "Token has expired.";
-                public const string UnauthorizedAccess = "You can only access resources you own.";
-            }
-            public static class FileUpload
-            {
-                public const string TempFolder = "temp";
-                public const string AllowedExtensions = ".jpg,.jpeg,.png,.gif";
-                public const int MaxFileSizeMB = 10;
-            }
+            private const string ApiBase = $"api/{ApiVersion}";
+            public const string Users = $"{ApiBase}/users";
+            public const string Events = $"{ApiBase}/events";
+            public const string EventsRegistration = $"{Events}/{{eventId}}/register";
+            public const string RegistrationsAdmin = $"{ApiBase}/events-registrations";
+        }
+
+        public static class ErrorMessages
+        {
+            public const string InvalidCredentials = "Invalid email or password.";
+            public const string UserAlreadyExists = "User with this email already exists.";
+            public const string InvalidToken = "Invalid token.";
+
+            public const string AuthenticationFailure =
+                "User not found, refresh token mismatch, or refresh token expired.";
+
+            public static string TokenValidationFailed(string message) => $"Token validation failed: {message}";
+            public const string UnauthorizedAccess = "You can only access resources you own.";
+            public const string OnlyImagesAllowed = "Invalid file type. Only images are allowed.";
+        }
+
+        public static class FileUpload
+        {
+            public const string TempFolder = "temp";
+            public const string AllowedExtensions = ".jpg,.jpeg,.png,.gif";
+            public const int MaxFileSizeMb = 10;
         }
     }
-} 
+}

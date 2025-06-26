@@ -13,23 +13,30 @@ public static partial class Helpers
     {
         public static string GenerateToken(User user, IConfiguration configuration)
         {
-            var jwtKey = configuration["Jwt:Key"] ?? Constants.Jwt.DefaultKey;
-            var jwtIssuer = configuration["Jwt:Issuer"] ?? Constants.Jwt.DefaultIssuer;
+            var jwtKey = configuration["Jwt:Key"] ?? Constants.Constants.Jwt.DefaultKey;
+            var jwtIssuer = configuration["Jwt:Issuer"] ?? Constants.Constants.Jwt.DefaultIssuer;
+
+            if (user is not { Email: not null, UserName: not null })
+                throw new ArgumentException("User must have Email and UserName to generate JWT token.");
+
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName)
             };
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
             var token = new JwtSecurityToken(
                 issuer: jwtIssuer,
                 audience: null,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(Constants.Jwt.TokenExpirationHours),
+                expires: DateTime.UtcNow.AddHours(Constants.Constants.Jwt.TokenExpirationHours),
                 signingCredentials: creds
             );
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
@@ -43,8 +50,8 @@ public static partial class Helpers
 
         public static TokenValidationParameters GetTokenValidationParameters(IConfiguration configuration)
         {
-            var jwtKey = configuration["Jwt:Key"] ?? Constants.Jwt.DefaultKey;
-            var jwtIssuer = configuration["Jwt:Issuer"] ?? Constants.Jwt.DefaultIssuer;
+            var jwtKey = configuration["Jwt:Key"] ?? Constants.Constants.Jwt.DefaultKey;
+            var jwtIssuer = configuration["Jwt:Issuer"] ?? Constants.Constants.Jwt.DefaultIssuer;
 
             return new TokenValidationParameters
             {

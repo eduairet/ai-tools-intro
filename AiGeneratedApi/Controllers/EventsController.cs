@@ -11,118 +11,111 @@ using System.IdentityModel.Tokens.Jwt;
 namespace EventManagementApi.Controllers;
 
 [ApiController]
-[Route("api/events")]
+[Route(Constants.Api.Routes.Events)]
 [Authorize]
-public class EventsController : ControllerBase
+public class EventsController(IRepositoryEvents eventRepository, IMapper mapper) : ControllerBase
 {
-    private readonly IRepositoryEvents _eventRepository;
-    private readonly IMapper _mapper;
-
-    public EventsController(IRepositoryEvents eventRepository, IMapper mapper)
-    {
-        _eventRepository = eventRepository;
-        _mapper = mapper;
-    }
-
-    // GET: api/events
+    // GET: api/v1/events
     [HttpGet]
     [AllowAnonymous] // Allow anonymous access for public event listings
     public async Task<IActionResult> GetAllEvents()
     {
-        var events = await _eventRepository.GetAllAsync();
-        var response = _mapper.Map<IEnumerable<EventResponseDto>>(events);
+        var events = await eventRepository.GetAllAsync();
+        var response = mapper.Map<IEnumerable<EventResponseDto>>(events);
         return Ok(response);
     }
 
-    // GET: api/events/{id}
+    // GET: api/v1/events/{id}
     [HttpGet("{id}")]
     [AllowAnonymous] // Allow anonymous access for public event details
     public async Task<IActionResult> GetEvent(string id)
     {
-        var eventItem = await _eventRepository.GetByIdAsync(id);
-        if (eventItem is null)
-            return NotFound();
+        var eventItem = await eventRepository.GetByIdAsync(id);
 
-        var response = _mapper.Map<EventResponseDto>(eventItem);
+        if (eventItem is null) return NotFound();
+
+        var response = mapper.Map<EventResponseDto>(eventItem);
         return Ok(response);
     }
 
-    // POST: api/events
+    // POST: api/v1/events
     [HttpPost]
     public async Task<IActionResult> CreateEvent([FromBody] CreateEventDto createEventDto)
     {
         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
 
-        var eventItem = _mapper.Map<Event>(createEventDto);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var eventItem = mapper.Map<Event>(createEventDto);
         eventItem.Id = Guid.NewGuid().ToString();
         eventItem.OwnerId = userId;
 
-        await _eventRepository.AddAsync(eventItem);
-        await _eventRepository.SaveChangesAsync();
+        await eventRepository.AddAsync(eventItem);
+        await eventRepository.SaveChangesAsync();
 
-        var response = _mapper.Map<EventResponseDto>(eventItem);
+        var response = mapper.Map<EventResponseDto>(eventItem);
         return CreatedAtAction(nameof(GetEvent), new { id = eventItem.Id }, response);
     }
 
-    // PUT: api/events/{id}
+    // PUT: api/v1/events/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateEvent(string id, [FromBody] UpdateEventDto updateEventDto)
     {
-        var eventItem = await _eventRepository.GetByIdAsync(id);
-        if (eventItem is null)
-            return NotFound();
+        var eventItem = await eventRepository.GetByIdAsync(id);
+
+        if (eventItem is null) return NotFound();
 
         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
         if (eventItem.OwnerId != userId)
-            return Forbid(Constants.ApiConstants.ErrorMessages.UnauthorizedAccess);
+            return Forbid(Constants.Api.ErrorMessages.UnauthorizedAccess);
 
-        _mapper.Map(updateEventDto, eventItem);
-        await _eventRepository.SaveChangesAsync();
+        mapper.Map(updateEventDto, eventItem);
+        await eventRepository.SaveChangesAsync();
 
-        var response = _mapper.Map<EventResponseDto>(eventItem);
+        var response = mapper.Map<EventResponseDto>(eventItem);
         return Ok(response);
     }
 
-    // DELETE: api/events/{id}
+    // DELETE: api/v1/events/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteEvent(string id)
     {
-        var eventItem = await _eventRepository.GetByIdAsync(id);
-        if (eventItem is null)
-            return NotFound();
+        var eventItem = await eventRepository.GetByIdAsync(id);
+
+        if (eventItem is null) return NotFound();
 
         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        if (eventItem.OwnerId != userId)
-            return Forbid(Constants.ApiConstants.ErrorMessages.UnauthorizedAccess);
 
-        _eventRepository.Remove(eventItem);
-        await _eventRepository.SaveChangesAsync();
+        if (eventItem.OwnerId != userId)
+            return Forbid(Constants.Api.ErrorMessages.UnauthorizedAccess);
+
+        eventRepository.Remove(eventItem);
+        await eventRepository.SaveChangesAsync();
 
         return NoContent();
     }
 
-    // POST: api/events/{id}/image
+    // POST: api/v1/events/{id}/image
     [HttpPost("{id}/image")]
     public async Task<IActionResult> UploadEventImage(string id, IFormFile file)
     {
-        var eventItem = await _eventRepository.GetByIdAsync(id);
+        var eventItem = await eventRepository.GetByIdAsync(id);
         if (eventItem is null)
             return NotFound();
 
         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         if (eventItem.OwnerId != userId)
-            return Forbid(Constants.ApiConstants.ErrorMessages.UnauthorizedAccess);
+            return Forbid(Constants.Api.ErrorMessages.UnauthorizedAccess);
 
         if (!Helpers.File.IsValidImage(file))
-            return BadRequest("Invalid file type. Only images are allowed.");
+            return BadRequest(Constants.Api.ErrorMessages.OnlyImagesAllowed);
 
         var uploadPath = Helpers.File.GetTempUploadPath();
         var fileName = await Helpers.File.SaveAsync(file, uploadPath);
 
-        eventItem.ImageUrl = $"/temp/{fileName}";
-        await _eventRepository.SaveChangesAsync();
+        eventItem.ImageUrl = $"/{Constants.Api.FileUpload.TempFolder}/{fileName}";
+        await eventRepository.SaveChangesAsync();
 
         return Ok(new { imageUrl = eventItem.ImageUrl });
     }

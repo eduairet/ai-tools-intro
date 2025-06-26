@@ -1,12 +1,13 @@
-@EventManagementApi_HostAddress = http://localhost:8080
+@EventManagementApi_HostAddress = http://localhost:5045
 
+### Weather forecast (sample)
 GET {{EventManagementApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
 
 ### Register a new user
-POST {{EventManagementApi_HostAddress}}/api/users/register
+POST {{EventManagementApi_HostAddress}}/api/v1/users/register
 Content-Type: application/json
 
 {
@@ -18,30 +19,41 @@ Content-Type: application/json
 ###
 
 ### Login and get JWT token
-POST {{EventManagementApi_HostAddress}}/api/users/login
+POST {{EventManagementApi_HostAddress}}/api/v1/users/login
 Content-Type: application/json
 
 {
-  "userName": "testuser",
+  "email": "testuser@example.com",
   "password": "testpassword"
 }
 
 ###
 
+### Refresh JWT token
+POST {{EventManagementApi_HostAddress}}/api/v1/users/refresh
+Content-Type: application/json
+
+{
+  "accessToken": "{{jwt_token}}",
+  "refreshToken": "{{refresh_token}}"
+}
+
+###
+
 ### Get all events (public)
-GET {{EventManagementApi_HostAddress}}/api/events
+GET {{EventManagementApi_HostAddress}}/api/v1/events
 Accept: application/json
 
 ###
 
 ### Get a single event by ID (public)
-GET {{EventManagementApi_HostAddress}}/api/events/{eventId}
+GET {{EventManagementApi_HostAddress}}/api/v1/events/{eventId}
 Accept: application/json
 
 ###
 
 ### Create a new event (requires Bearer token)
-POST {{EventManagementApi_HostAddress}}/api/events
+POST {{EventManagementApi_HostAddress}}/api/v1/events
 Authorization: Bearer {{jwt_token}}
 Content-Type: application/json
 
@@ -56,7 +68,7 @@ Content-Type: application/json
 ###
 
 ### Update an event (requires Bearer token)
-PUT {{EventManagementApi_HostAddress}}/api/events/{eventId}
+PUT {{EventManagementApi_HostAddress}}/api/v1/events/{eventId}
 Authorization: Bearer {{jwt_token}}
 Content-Type: application/json
 
@@ -71,50 +83,47 @@ Content-Type: application/json
 ###
 
 ### Delete an event (requires Bearer token)
-DELETE {{EventManagementApi_HostAddress}}/api/events/{eventId}
+DELETE {{EventManagementApi_HostAddress}}/api/v1/events/{eventId}
 Authorization: Bearer {{jwt_token}}
+
+###
+
+### Upload an image for an event (requires Bearer token)
+POST {{EventManagementApi_HostAddress}}/api/v1/events/{eventId}/image
+Authorization: Bearer {{jwt_token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./sample.jpg
+--WebAppBoundary--
 
 ###
 
 ### Register for an event (requires Bearer token)
-POST {{EventManagementApi_HostAddress}}/api/events/{eventId}/eventsregistration/register
+POST {{EventManagementApi_HostAddress}}/api/v1/eventsregistration?eventId={eventId}
 Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
-
-{
-  "userId": "{userId}"
-}
 
 ###
 
 ### Unregister from an event (requires Bearer token)
-DELETE {{EventManagementApi_HostAddress}}/api/events/{eventId}/eventsregistration/register
+DELETE {{EventManagementApi_HostAddress}}/api/v1/eventsregistration?eventId={eventId}
 Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
-
-{
-  "userId": "{userId}"
-}
 
 ###
 
-### Get all registrations for an event (requires Bearer token)
-GET {{EventManagementApi_HostAddress}}/api/events/{eventId}/eventsregistration
+### Get all registrations (admin, requires Bearer token)
+GET {{EventManagementApi_HostAddress}}/api/v1/events-registrations
 Authorization: Bearer {{jwt_token}}
 Accept: application/json
 
 ###
 
-### Upload an image for an event (requires Bearer token)
-POST {{EventManagementApi_HostAddress}}/api/events/{eventId}/image
+### Get a registration by ID (admin, requires Bearer token)
+GET {{EventManagementApi_HostAddress}}/api/v1/events-registrations/{registrationId}
 Authorization: Bearer {{jwt_token}}
-Content-Type: multipart/form-data; boundary=WebAppBoundary
-
---WebAppBoundary
-Content-Disposition: form-data; name="image"; filename="sample.jpg"
-Content-Type: image/jpeg
-
-< ./sample.jpg
---WebAppBoundary--
+Accept: application/json
 
 ###
