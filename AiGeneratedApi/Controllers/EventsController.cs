@@ -17,7 +17,7 @@ public class EventsController(IRepositoryEvents eventRepository, IMapper mapper)
 {
     // GET: api/v1/events
     [HttpGet]
-    [AllowAnonymous] // Allow anonymous access for public event listings
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllEvents()
     {
         var events = await eventRepository.GetAllAsync();
@@ -27,7 +27,7 @@ public class EventsController(IRepositoryEvents eventRepository, IMapper mapper)
 
     // GET: api/v1/events/{id}
     [HttpGet("{id}")]
-    [AllowAnonymous] // Allow anonymous access for public event details
+    [AllowAnonymous]
     public async Task<IActionResult> GetEvent(string id)
     {
         var eventItem = await eventRepository.GetByIdAsync(id);

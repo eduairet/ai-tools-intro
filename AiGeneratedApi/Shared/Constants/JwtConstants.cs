@@ -1,12 +1,11 @@
 namespace EventManagementApi.Shared.Constants;
 
-public partial class Constants
+public abstract partial class Constants
 {
     public static class Jwt
     {
         public const string DefaultKey = "this-is-a-fallback-and-it-does-not-matter";
         public const string DefaultIssuer = "EventManagementApi";
-        public const string BearerScheme = "Bearer";
         public const int TokenExpirationHours = 1;
     }
 }

@@ -1,6 +1,6 @@
 namespace EventManagementApi.Shared.Constants;
 
-public partial class Constants
+public abstract partial class Constants
 {
     public static class Api
     {
