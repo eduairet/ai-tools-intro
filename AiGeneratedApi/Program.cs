@@ -31,13 +31,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     // Add JWT authentication to Swagger
-    c.AddSecurityDefinition(Constants.Jwt.BearerScheme, new OpenApiSecurityScheme
+    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
-        Scheme = Constants.Jwt.BearerScheme
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        BearerFormat = "JWT"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -48,7 +49,7 @@ builder.Services.AddSwaggerGen(c =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = Constants.Jwt.BearerScheme
+                    Id = JwtBearerDefaults.AuthenticationScheme
                 }
             },
             []
@@ -73,9 +74,11 @@ builder.Services.AddScoped<IRepositoryUsers, RepositoryUsers>();
 builder.Services.AddScoped<IRepositoryEvents, RepositoryEvents>();
 builder.Services.AddScoped<IRepositoryEventsRegistrations, RepositoryEventsRegistrations>();
 
+// Enhance JWT Bearer authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = Helpers.Jwt.GetTokenValidationParameters(builder.Configuration);
     });
 
@@ -123,7 +126,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint($"/swagger/{Constants.Api.ApiVersion}/swagger.json", $"Event Management API {Constants.Api.ApiVersion.ToUpper()}");
+        c.SwaggerEndpoint($"/swagger/{Constants.Api.ApiVersion}/swagger.json",
+            $"Event Management API {Constants.Api.ApiVersion.ToUpper()}");
         c.RoutePrefix = string.Empty; // Serve Swagger UI at the app's root
     });
 }
@@ -134,6 +138,7 @@ app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.MapControllers();
 

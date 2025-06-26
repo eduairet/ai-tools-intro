@@ -52,6 +52,7 @@ public static partial class Helpers
         {
             var jwtKey = configuration["Jwt:Key"] ?? Constants.Constants.Jwt.DefaultKey;
             var jwtIssuer = configuration["Jwt:Issuer"] ?? Constants.Constants.Jwt.DefaultIssuer;
+            var jwtAudience = configuration["Jwt:Audience"];
 
             return new TokenValidationParameters
             {
@@ -60,6 +61,7 @@ public static partial class Helpers
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                 ClockSkew = TimeSpan.Zero // No tolerance for expiration
             };
