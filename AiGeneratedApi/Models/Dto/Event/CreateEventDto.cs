@@ -11,4 +11,5 @@ public class CreateEventDto
     [Required] public DateTime Date { get; set; }
 
     [Required] [StringLength(200)] public string Location { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
 }

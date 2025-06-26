@@ -1,36 +1,59 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using EventManagementApi.Models;
+using EventManagementApi.Repositories.RepositoryEvents;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
+using EventManagementApi.Repositories.RepositoryUsers;
 using AutoMapper;
 using EventManagementApi.Models.Dto.EventRegistration;
 using EventManagementApi.Shared.Constants;
+using EventManagementApi.Shared.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace EventManagementApi.Controllers;
 
 [ApiController]
-[Route(Constants.Api.Routes.EventsRegistration)]
-[Authorize]
-public class EventsRegistrationController(IRepositoryEventsRegistrations registrationRepository, IMapper mapper)
+[Route(Constants.Api.Routes.EventsRegistrations)]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+public class EventsRegistrationController(
+    IRepositoryEvents eventsRepository,
+    IRepositoryEventsRegistrations registrationsRepository,
+    IRepositoryUsers usersRepository,
+    IMapper mapper)
     : ControllerBase
 {
     // POST: api/v1/events/{eventId}/register
     [HttpPost]
     public async Task<IActionResult> Register(string eventId)
     {
-        var userId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        if (!Guid.TryParse(eventId, out _))
+        {
+            return BadRequest(Constants.Api.ErrorMessages.InvalidId);
+        }
 
-        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+        var (success, user, errorResult) = await UserHelper.GetAndValidateCurrentUserAsync(User, usersRepository);
+        if (!success) return errorResult!;
+
+        var eventEntity = await eventsRepository.GetByIdAsync(eventId);
+        if (eventEntity is null) return NotFound(Constants.Api.ErrorMessages.EventNotFound);
+
+        if (eventEntity.OwnerId == user!.Id)
+            return BadRequest(Constants.Api.ErrorMessages.CannotRegisterForOwnEvent);
+
+        if (registrationsRepository.FindAsync(r => r.EventId == eventId && r.UserId == user.Id).Result.Any())
+            return BadRequest(Constants.Api.ErrorMessages.AlreadyRegisteredForEvent);
 
         var registration = new EventRegistration
         {
             Id = Guid.NewGuid().ToString(),
-            EventId = Guid.Parse(eventId).ToString(),
-            UserId = userId
+            EventId = eventEntity.Id,
+            UserId = user.Id,
+            Event = eventEntity,
+            User = user
         };
 
-        await registrationRepository.AddAsync(registration);
-        await registrationRepository.SaveChangesAsync();
+        await registrationsRepository.AddAsync(registration);
+        await registrationsRepository.SaveChangesAsync();
 
         var response = mapper.Map<EventRegistrationResponseDto>(registration);
         return CreatedAtAction(null, new { id = registration.Id }, response);
@@ -40,16 +63,23 @@ public class EventsRegistrationController(IRepositoryEventsRegistrations registr
     [HttpDelete]
     public async Task<IActionResult> Unregister(string eventId)
     {
-        var userId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
-        var eventGuid = Guid.Parse(eventId);
+        // Validate eventId is a valid Guid
+        if (!Guid.TryParse(eventId, out _))
+        {
+            return BadRequest(Constants.Api.ErrorMessages.InvalidId);
+        }
+
+        var (success, user, errorResult) = await UserHelper.GetAndValidateCurrentUserAsync(User, usersRepository);
+        if (!success) return errorResult!;
+
         var registrations =
-            await registrationRepository.FindAsync(r => r.EventId == eventGuid.ToString() && r.UserId == userId);
+            await registrationsRepository.FindAsync(r => r.EventId == eventId && r.UserId == user!.Id);
+
         var registration = registrations.FirstOrDefault();
+        if (registration is null) return NotFound(Constants.Api.ErrorMessages.RegistrationNotFound);
 
-        if (registration is null) return NotFound();
-
-        registrationRepository.Remove(registration);
-        await registrationRepository.SaveChangesAsync();
+        registrationsRepository.Remove(registration);
+        await registrationsRepository.SaveChangesAsync();
 
         return NoContent();
     }

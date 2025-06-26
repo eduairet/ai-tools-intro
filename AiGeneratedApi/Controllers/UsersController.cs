@@ -14,7 +14,7 @@ namespace EventManagementApi.Controllers;
 
 [ApiController]
 [Route(Constants.Api.Routes.Users)]
-public class UsersController(IRepositoryUsers userRepository, IConfiguration configuration, IMapper mapper)
+public class UsersController(IRepositoryUsers usersRepository, IConfiguration configuration, IMapper mapper)
     : ControllerBase
 {
     // POST: api/v1/users/register
@@ -22,7 +22,7 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         // Check if user with this email already exists
-        var existingUsers = await userRepository.FindAsync(u => u.Email == registerDto.Email);
+        var existingUsers = await usersRepository.FindAsync(u => u.Email == registerDto.Email);
 
         if (existingUsers.Any()) return BadRequest(Constants.Api.ErrorMessages.UserAlreadyExists);
 
@@ -30,8 +30,8 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
         var user = mapper.Map<User>(registerDto);
         user.PasswordHash = Helpers.Password.Hash(registerDto.Password);
 
-        await userRepository.AddAsync(user);
-        await userRepository.SaveChangesAsync();
+        await usersRepository.AddAsync(user);
+        await usersRepository.SaveChangesAsync();
 
         // Map User to response DTO
         var response = mapper.Map<UserResponseDto>(user);
@@ -42,7 +42,7 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
-        var users = await userRepository.FindAsync(u => u.Email == loginDto.Email);
+        var users = await usersRepository.FindAsync(u => u.Email == loginDto.Email);
         var user = users.FirstOrDefault();
 
         if (user is null)
@@ -57,7 +57,7 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
         var refreshToken = Helpers.Jwt.GenerateRefreshToken();
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7).ToString(CultureInfo.InvariantCulture);
-        await userRepository.SaveChangesAsync();
+        await usersRepository.SaveChangesAsync();
 
         return Ok(new { token = tokenString, refreshToken });
     }
@@ -84,7 +84,7 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
             }
 
             var userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-            var user = await userRepository.GetByIdAsync(userId);
+            var user = await usersRepository.GetByIdAsync(userId);
             if (user is null || user.RefreshToken != dto.RefreshToken ||
                 DateTime.TryParse(user.RefreshTokenExpiryTime, out var expiryTime) && expiryTime <= DateTime.UtcNow)
                 return StatusCode(401,
@@ -98,7 +98,7 @@ public class UsersController(IRepositoryUsers userRepository, IConfiguration con
             var newRefreshToken = Helpers.Jwt.GenerateRefreshToken();
             user.RefreshToken = newRefreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7).ToString(CultureInfo.InvariantCulture);
-            await userRepository.SaveChangesAsync();
+            await usersRepository.SaveChangesAsync();
 
             return Ok(new { token = newAccessToken, refreshToken = newRefreshToken });
         }

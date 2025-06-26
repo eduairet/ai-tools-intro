@@ -1,10 +1,9 @@
 using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryBase;
 
-namespace EventManagementApi.Repositories.RepositoryEventsRegistrations
+namespace EventManagementApi.Repositories.RepositoryEventsRegistrations;
+
+public interface IRepositoryEventsRegistrations : IRepositoryBase<EventRegistration>
 {
-    public interface IRepositoryEventsRegistrations : IRepositoryBase<EventRegistration>
-    {
-        // Add registration-specific methods here if needed
-    }
+    // Add registration-specific methods here if needed
 }

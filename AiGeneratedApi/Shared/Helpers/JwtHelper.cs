@@ -13,31 +13,32 @@ public static partial class Helpers
     {
         public static string GenerateToken(User user, IConfiguration configuration)
         {
-            var jwtKey = configuration["Jwt:Key"] ?? Constants.Constants.Jwt.DefaultKey;
-            var jwtIssuer = configuration["Jwt:Issuer"] ?? Constants.Constants.Jwt.DefaultIssuer;
-
             if (user is not { Email: not null, UserName: not null })
                 throw new ArgumentException("User must have Email and UserName to generate JWT token.");
 
+            var jwtKey = configuration["Jwt:Key"] ?? Constants.Constants.Jwt.DefaultKey;
+            var jwtAudience = configuration["Jwt:Audience"] ?? Constants.Constants.Jwt.DefaultAudience;
+            var jwtIssuer = configuration["Jwt:Issuer"] ?? Constants.Constants.Jwt.DefaultIssuer;
+
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Email, user.Email),
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
+            var tokenDescriptor = new JwtSecurityToken(
                 issuer: jwtIssuer,
-                audience: null,
+                audience: jwtAudience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(Constants.Constants.Jwt.TokenExpirationHours),
-                signingCredentials: creds
+                expires: DateTime.UtcNow.AddMinutes(Constants.Constants.Jwt.TokenExpirationMinutes),
+                signingCredentials: credentials
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         }
 
         public static string GenerateRefreshToken()
@@ -51,19 +52,18 @@ public static partial class Helpers
         public static TokenValidationParameters GetTokenValidationParameters(IConfiguration configuration)
         {
             var jwtKey = configuration["Jwt:Key"] ?? Constants.Constants.Jwt.DefaultKey;
+            var jwtAudience = configuration["Jwt:Audience"] ?? Constants.Constants.Jwt.DefaultAudience;
             var jwtIssuer = configuration["Jwt:Issuer"] ?? Constants.Constants.Jwt.DefaultIssuer;
-            var jwtAudience = configuration["Jwt:Audience"];
 
             return new TokenValidationParameters
             {
+                ValidateAudience = true,
+                ValidAudience = jwtAudience,
                 ValidateIssuer = true,
-                ValidateAudience = false, // No audience specified in token generation
+                ValidIssuer = jwtIssuer,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtIssuer,
-                ValidAudience = jwtAudience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-                ClockSkew = TimeSpan.Zero // No tolerance for expiration
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
             };
         }
     }

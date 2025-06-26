@@ -1,23 +1,33 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
+using EventManagementApi.Repositories.RepositoryUsers;
 using AutoMapper;
 using EventManagementApi.Models.Dto.EventRegistration;
 using EventManagementApi.Shared.Constants;
+using EventManagementApi.Shared.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace EventManagementApi.Controllers;
 
 [ApiController]
 [Route(Constants.Api.Routes.RegistrationsAdmin)]
-[Authorize]
-public class RegistrationsAdminController(IRepositoryEventsRegistrations registrationRepository, IMapper mapper)
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+public class RegistrationsAdminController(
+    IRepositoryEventsRegistrations registrationsRepository,
+    IRepositoryUsers usersRepository,
+    IMapper mapper)
     : ControllerBase
 {
     // GET: api/v1/events-registrations
     [HttpGet]
     public async Task<IActionResult> GetAllRegistrations()
     {
-        var registrations = await registrationRepository.GetAllAsync();
+        var (success, user, errorResult) = await UserHelper.GetAndValidateCurrentUserAsync(User, usersRepository);
+        if (!success) return errorResult!;
+
+        var registrations = (await registrationsRepository.GetAllAsync()).Where(r => r.Event.OwnerId == user!.Id);
+
         var response = mapper.Map<IEnumerable<EventRegistrationResponseDto>>(registrations);
         return Ok(response);
     }
@@ -26,9 +36,11 @@ public class RegistrationsAdminController(IRepositoryEventsRegistrations registr
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRegistration(string id)
     {
-        var registration = await registrationRepository.GetByIdAsync(id);
-        if (registration is null)
-            return NotFound();
+        var (success, user, errorResult) = await UserHelper.GetAndValidateCurrentUserAsync(User, usersRepository);
+        if (!success) return errorResult!;
+
+        var registration = await registrationsRepository.GetByIdAsync(id);
+        if (registration is null || registration.UserId != user?.Id) return NotFound();
 
         var response = mapper.Map<EventRegistrationResponseDto>(registration);
         return Ok(response);

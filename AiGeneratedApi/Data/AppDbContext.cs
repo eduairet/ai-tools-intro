@@ -48,9 +48,5 @@ public partial class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.PhoneNumberConfirmed).HasColumnType("BOOLEAN");
             entity.Property(e => e.TwoFactorEnabled).HasColumnType("BOOLEAN");
         });
-
-        OnModelCreatingPartial(modelBuilder);
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

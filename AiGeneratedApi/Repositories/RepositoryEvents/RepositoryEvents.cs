@@ -1,14 +1,23 @@
 using EventManagementApi.Data;
 using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryBase;
+using Microsoft.EntityFrameworkCore;
 
-namespace EventManagementApi.Repositories.RepositoryEvents
+namespace EventManagementApi.Repositories.RepositoryEvents;
+
+public class RepositoryEvents(AppDbContext context) : RepositoryBase<Event>(context), IRepositoryEvents
 {
-    public class RepositoryEvents : RepositoryBase<Event>, IRepositoryEvents
+    public override async Task<Event?> GetByIdAsync(object id)
     {
-        public RepositoryEvents(AppDbContext context) : base(context)
-        {
-        }
-        // Add event-specific methods here if needed
+        return await Context.Events
+            .Include(e => e.Owner)
+            .FirstOrDefaultAsync(e => e.Id == id.ToString());
+    }
+
+    public override async Task<IEnumerable<Event>> GetAllAsync()
+    {
+        return await Context.Events
+            .Include(e => e.Owner)
+            .ToListAsync();
     }
 }
