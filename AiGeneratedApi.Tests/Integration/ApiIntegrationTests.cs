@@ -1,22 +1,9 @@
-using System.Net;
 using System.Net.Http.Json;
-using AutoMapper;
 using EventManagementApi.Models.Dto.Event;
 using EventManagementApi.Models.Dto.User;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using EventManagementApi.Data;
-using EventManagementApi.Models;
 using Xunit;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Builder;
-using EventManagementApi.Repositories.RepositoryEvents;
-using EventManagementApi.Repositories.RepositoryUsers;
-using EventManagementApi.Repositories.RepositoryEventsRegistrations;
-using EventManagementApi.Config;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net.Http.Headers;
 
@@ -51,7 +38,7 @@ public class ApiIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         await dbContext.SaveChangesAsync();
     }
 
-    [Fact(Skip = "Integration tests need further configuration")]
+    [Fact]
     public async Task RegisterUser_ThenLogin_ThenCreateEvent_EndToEndTest()
     {
         // Register a new user
@@ -106,7 +93,7 @@ public class ApiIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(createEventDto.Title, retrievedEvent.Title);
     }
 
-    [Fact(Skip = "Integration tests need further configuration")]
+    [Fact]
     public async Task GetEvents_WithoutAuthentication_ReturnsOk()
     {
         // Anyone should be able to get events without authentication

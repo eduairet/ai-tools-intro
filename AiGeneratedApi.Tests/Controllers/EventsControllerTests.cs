@@ -8,8 +8,6 @@ using Moq;
 using Xunit;
 using Microsoft.AspNetCore.Http;
 
-using System.Linq.Expressions;
-
 namespace AiGeneratedApi.Tests.Controllers;
 
 public class EventsControllerTests : TestBase

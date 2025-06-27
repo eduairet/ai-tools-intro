@@ -4,10 +4,7 @@ using EventManagementApi.Models;
 using EventManagementApi.Models.Dto.Event;
 using EventManagementApi.Models.Dto.EventRegistration;
 using EventManagementApi.Models.Dto.User;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System;
-using System.Collections.Generic;
 
 namespace AiGeneratedApi.Tests;
 

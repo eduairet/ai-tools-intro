@@ -1,10 +1,8 @@
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using EventManagementApi.Data;
-using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryEvents;
 using EventManagementApi.Repositories.RepositoryUsers;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
@@ -14,13 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using AutoMapper;
 using Xunit;
-using System.Net.Http.Json;
-using EventManagementApi.Models.Dto.User;
-using EventManagementApi.Models.Dto.Event;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 
 namespace AiGeneratedApi.Tests.Integration
 {
@@ -77,9 +69,9 @@ namespace AiGeneratedApi.Tests.Integration
                         var configBuilder = new ConfigurationBuilder();
                         configBuilder.AddInMemoryCollection(new List<KeyValuePair<string, string?>>
                         {
-                            new KeyValuePair<string, string?>("JwtSettings:Secret", "testSecretKeyWithMinimum32Characters1234567890"),
-                            new KeyValuePair<string, string?>("JwtSettings:Issuer", "test-issuer"),
-                            new KeyValuePair<string, string?>("JwtSettings:Audience", "test-audience")
+                            new("JwtSettings:Secret", "testSecretKeyWithMinimum32Characters1234567890"),
+                            new("JwtSettings:Issuer", "test-issuer"),
+                            new("JwtSettings:Audience", "test-audience")
                         });
                         return configBuilder.Build();
                     });

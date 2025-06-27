@@ -1,5 +1,3 @@
-using System;
-
 namespace AiGeneratedApi.Tests.Mocks;
 
 // Mock DTOs that match the model's types for testing

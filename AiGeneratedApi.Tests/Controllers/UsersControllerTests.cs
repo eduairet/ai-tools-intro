@@ -1,16 +1,12 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using EventManagementApi.Controllers;
 using EventManagementApi.Models;
 using EventManagementApi.Models.Dto.User;
 using EventManagementApi.Repositories.RepositoryUsers;
-using EventManagementApi.Shared.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Xunit;
-using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
 namespace AiGeneratedApi.Tests.Controllers;
 
@@ -88,7 +84,7 @@ public class UsersControllerTests : TestBase
         };
 
         _usersRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<Expression<Func<User, bool>>>()))
-            .ReturnsAsync(new List<User> { existingUser });
+            .ReturnsAsync([existingUser]);
 
         // Act
         var result = await _controller.Register(registerDto);
@@ -117,7 +113,7 @@ public class UsersControllerTests : TestBase
         };
 
         _usersRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<Expression<Func<User, bool>>>()))
-            .ReturnsAsync(new List<User> { user });
+            .ReturnsAsync([user]);
 
         _usersRepositoryMock.Setup(repo => repo.SaveChangesAsync())
             .Returns(Task.CompletedTask);
@@ -143,10 +139,9 @@ public class UsersControllerTests : TestBase
     // Helper method to get property value from dynamic object
     private static object? GetDynamicProperty(dynamic obj, string propertyName)
     {
-        var dictionary = obj as IDictionary<string, object>;
-        if (dictionary != null && dictionary.ContainsKey(propertyName))
+        if (obj is IDictionary<string, object> dictionary && dictionary.TryGetValue(propertyName, out object? value))
         {
-            return dictionary[propertyName];
+            return value;
         }
 
         // For ExpandoObject or similar dynamic objects
@@ -179,7 +174,7 @@ public class UsersControllerTests : TestBase
         };
 
         _usersRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<Expression<Func<User, bool>>>()))
-            .ReturnsAsync(new List<User>());
+            .ReturnsAsync([]);
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -207,7 +202,7 @@ public class UsersControllerTests : TestBase
         };
 
         _usersRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<Expression<Func<User, bool>>>()))
-            .ReturnsAsync(new List<User> { user });
+            .ReturnsAsync([user]);
 
         // Act
         var result = await _controller.Login(loginDto);

@@ -1,16 +1,11 @@
 using System.Security.Claims;
 using AutoMapper;
-using EventManagementApi.Config;
 using EventManagementApi.Data;
 using EventManagementApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
-
-using System.Linq.Expressions;
 
 namespace AiGeneratedApi.Tests;
 
@@ -54,7 +49,7 @@ public abstract class TestBase
             null!, null!, null!, null!);
     }
 
-    protected ClaimsPrincipal CreateUserPrincipal(string userId, string email)
+    protected static ClaimsPrincipal CreateUserPrincipal(string userId, string email)
     {
         var claims = new List<Claim>
         {

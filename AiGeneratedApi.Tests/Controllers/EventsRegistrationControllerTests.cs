@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using EventManagementApi.Controllers;
 using EventManagementApi.Models;
-using EventManagementApi.Models.Dto.EventRegistration;
 using EventManagementApi.Repositories.RepositoryEvents;
 using EventManagementApi.Repositories.RepositoryEventsRegistrations;
 using EventManagementApi.Repositories.RepositoryUsers;

@@ -1,6 +1,5 @@
 using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryEvents;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace AiGeneratedApi.Tests.Repositories
@@ -11,7 +10,7 @@ namespace AiGeneratedApi.Tests.Repositories
 
         public MockRepositoryEvents()
         {
-            _events = new List<Event>();
+            _events = [];
         }
 
         public Task AddAsync(Event entity)

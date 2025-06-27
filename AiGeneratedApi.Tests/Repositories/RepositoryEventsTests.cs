@@ -1,12 +1,7 @@
 using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryEvents;
-using EventManagementApi.Repositories.RepositoryBase;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-using Microsoft.AspNetCore.Http;
-
-using System.Linq.Expressions;
 namespace AiGeneratedApi.Tests.Repositories;
 
 public class RepositoryEventsTests : TestBase

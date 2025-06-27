@@ -1,88 +1,17 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 using EventManagementApi.Data;
-using System.Text;
 using AutoMapper;
-using Microsoft.AspNetCore.Routing;
 
 namespace AiGeneratedApi.Tests.Integration
 {
-    // Using a custom Startup class for integration tests
-    public class CustomWebApplicationFactory : WebApplicationFactory<CustomWebApplicationFactory.Startup>
+    // Using WebApplicationFactory pointing to the real Program class
+    public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
-        public class Startup
-        {
-            public IConfiguration Configuration { get; }
-
-            public Startup(IConfiguration configuration)
-            {
-                Configuration = configuration;
-            }
-
-            public void ConfigureServices(IServiceCollection services)
-            {
-                services.AddControllers().AddApplicationPart(typeof(EventManagementApi.Controllers.EventsController).Assembly);
-                services.AddEndpointsApiExplorer();
-
-                // Add in-memory database
-                services.AddDbContext<AppDbContext>(options =>
-                {
-                    options.UseInMemoryDatabase("IntegrationTestDb");
-                });
-
-                // Register repositories
-                services.AddScoped<EventManagementApi.Repositories.RepositoryEvents.IRepositoryEvents,
-                    EventManagementApi.Repositories.RepositoryEvents.RepositoryEvents>();
-                services.AddScoped<EventManagementApi.Repositories.RepositoryUsers.IRepositoryUsers,
-                    EventManagementApi.Repositories.RepositoryUsers.RepositoryUsers>();
-                services.AddScoped<EventManagementApi.Repositories.RepositoryEventsRegistrations.IRepositoryEventsRegistrations,
-                    EventManagementApi.Repositories.RepositoryEventsRegistrations.RepositoryEventsRegistrations>();
-
-                // Add our custom AutoMapper
-                services.AddSingleton<IMapper>(_ => MockMapper.CreateMockMapper());
-
-                // Configure authentication
-                services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateLifetime = false,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes("testSecretKeyWithMinimum32Characters1234567890"))
-                    };
-                });
-            }
-
-            public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-            {
-                app.UseRouting();
-                app.UseAuthentication();
-                app.UseAuthorization();
-                app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapControllers();
-                });
-            }
-        }
-
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.ConfigureAppConfiguration((context, config) =>
@@ -90,14 +19,16 @@ namespace AiGeneratedApi.Tests.Integration
                 // Add test configuration
                 var configItems = new List<KeyValuePair<string, string?>>
                 {
-                    new KeyValuePair<string, string?>("JwtSettings:Secret", "testSecretKeyWithMinimum32Characters1234567890"),
-                    new KeyValuePair<string, string?>("JwtSettings:Issuer", "test-issuer"),
-                    new KeyValuePair<string, string?>("JwtSettings:Audience", "test-audience")
+                    new("JwtSettings:Secret", "testSecretKeyWithMinimum32Characters1234567890"),
+                    new("JwtSettings:Issuer", "test-issuer"),
+                    new("JwtSettings:Audience", "test-audience"),
+                    new("ConnectionStrings:DefaultConnection", "DataSource=:memory:")
                 };
 
                 config.AddInMemoryCollection(configItems);
             });
 
+            // Set the environment to "Testing" - this matches our special flag in Program.cs
             builder.UseEnvironment("Testing");
 
             builder.ConfigureServices(services =>
@@ -106,12 +37,9 @@ namespace AiGeneratedApi.Tests.Integration
                 var descriptor = services.SingleOrDefault(
                     d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
 
-                if (descriptor != null)
-                {
-                    services.Remove(descriptor);
-                }
+                if (descriptor is not null) services.Remove(descriptor);
 
-                // Add in-memory database
+                // Add in-memory database for testing
                 services.AddDbContext<AppDbContext>(options =>
                 {
                     options.UseInMemoryDatabase("IntegrationTestDb");
@@ -128,6 +56,7 @@ namespace AiGeneratedApi.Tests.Integration
                 var scopedServices = scope.ServiceProvider;
                 var db = scopedServices.GetRequiredService<AppDbContext>();
 
+                // Ensure database is created
                 db.Database.EnsureCreated();
             });
         }

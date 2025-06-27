@@ -2,11 +2,8 @@ using System.Security.Claims;
 using EventManagementApi.Models;
 using EventManagementApi.Repositories.RepositoryUsers;
 using EventManagementApi.Shared.Helpers;
-using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
-
-using System.Linq.Expressions;
 
 namespace AiGeneratedApi.Tests.Helpers;
 
