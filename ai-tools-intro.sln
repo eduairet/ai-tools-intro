@@ -4,6 +4,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagementApi", "AiGeneratedApi\EventManagementApi.csproj", "{6DCBD4A6-C314-B511-0687-D7E48BE9C389}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiGeneratedApi.Tests", "AiGeneratedApi.Tests\AiGeneratedApi.Tests.csproj", "{2A5D8D69-4352-4223-8C7B-1B5AD59F2D5A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{6DCBD4A6-C314-B511-0687-D7E48BE9C389}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DCBD4A6-C314-B511-0687-D7E48BE9C389}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DCBD4A6-C314-B511-0687-D7E48BE9C389}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A5D8D69-4352-4223-8C7B-1B5AD59F2D5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A5D8D69-4352-4223-8C7B-1B5AD59F2D5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A5D8D69-4352-4223-8C7B-1B5AD59F2D5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A5D8D69-4352-4223-8C7B-1B5AD59F2D5A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
