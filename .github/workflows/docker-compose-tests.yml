@@ -5,13 +5,17 @@ on:
     branches: [main]
     paths:
       - '**/*.py'
+      - 'AiGeneratedApi/**'
+      - 'AiGeneratedApi.Tests/**'
   pull_request:
     branches: [main]
     paths:
       - '**/*.py'
+      - 'AiGeneratedApi/**'
+      - 'AiGeneratedApi.Tests/**'
 
 jobs:
-  test:
+  python-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,8 +24,24 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-buildx-action@v3
 
-      - name: Run tests with Docker Compose
-        run: docker compose up --abort-on-container-exit --exit-code-from python-test
+      - name: Run Python tests with Docker Compose
+        run: docker compose up python-test --abort-on-container-exit --exit-code-from python-test
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
+
+  api-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run .NET API tests with Docker Compose
+        run: docker compose up dotnet-test --abort-on-container-exit --exit-code-from dotnet-test
 
       - name: Cleanup
         if: always()
