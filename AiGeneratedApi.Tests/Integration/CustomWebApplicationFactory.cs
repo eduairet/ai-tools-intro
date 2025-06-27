@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EventManagementApi.Data;
 using AutoMapper;
+using EventManagementApi;
 
 namespace AiGeneratedApi.Tests.Integration
 {

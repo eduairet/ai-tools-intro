@@ -10,6 +10,8 @@ using EventManagementApi.Shared.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Scalar.AspNetCore;
 
+namespace EventManagementApi;
+
 public partial class Program
 {
     // Added for integration testing
